@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}ECLSS Life Support - AstroHealth NASA Operations{% endblock %}
+
+{% block content %}
+
+<!-- Header Banner -->
+<div class="sim-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <span class="badge bg-success text-dark text-uppercase fw-bold" style="letter-spacing:1px;"><i class="fas fa-wind me-1"></i> Spacecraft Life Support</span>
+    <span class="text-white-50 small">Environmental Control & Life Support System (ECLSS) - Real-time cabin pressure, scrubbers & consumables</span>
+  </div>
+  <span class="badge bg-dark border border-success text-success font-monospace">HABITAT: LUNAR HAB-01 (ALPHA)</span>
+</div>
+
+<!-- Primary Atmospheric Readouts -->
+<div class="row g-3 mb-4">
+  <div class="col-xl-3 col-md-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">TOTAL CABIN PRESSURE</span>
+        <i class="fas fa-tachometer-alt text-success"></i>
+      </div>
+      <div class="metric-value text-success">
+        {{ eclss.cabin_pressure_kpa }} <span class="metric-unit">kPa</span>
+      </div>
+      <div class="d-flex justify-content-between text-white-50 small font-monospace mt-1">
+        <span>14.69 psi</span>
+        <span class="text-success"><i class="fas fa-check"></i> Standard Sea Level</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">OXYGEN (O₂) FRACTION</span>
+        <i class="fas fa-lungs text-info"></i>
+      </div>
+      <div class="metric-value text-info">
+        {{ eclss.oxygen_pct }} <span class="metric-unit">%</span>
+      </div>
+      <div class="d-flex justify-content-between text-white-50 small font-monospace mt-1">
+        <span>ppO₂: 21.2 kPa</span>
+        <span class="text-success"><i class="fas fa-check"></i> Hyperoxia Safe</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">CO₂ SCRUBBER FRACTION</span>
+        <i class="fas fa-smog text-warning"></i>
+      </div>
+      <div class="metric-value text-warning">
+        {{ eclss.co2_pct }} <span class="metric-unit">%</span>
+      </div>
+      <div class="d-flex justify-content-between text-white-50 small font-monospace mt-1">
+        <span>ppCO₂: 2.4 mmHg</span>
+        <span class="text-success"><i class="fas fa-fan"></i> CDRA Loop 2 Active</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">CABIN RADIATION</span>
+        <i class="fas fa-radiation text-danger"></i>
+      </div>
+      <div class="metric-value text-danger">
+        {{ eclss.radiation_usv_hr }} <span class="metric-unit">µSv/h</span>
+      </div>
+      <div class="d-flex justify-content-between text-white-50 small font-monospace mt-1">
+        <span>Accum: 0.33 mSv/day</span>
+        <span class="text-warning">GCR Background</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Consumables & Systems -->
+<div class="row g-3">
+  <!-- Consumables Storage -->
+  <div class="col-lg-6">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-cubes me-1 text-primary"></i> Life Support Consumables Reserves</span>
+        <span class="badge bg-dark border border-secondary text-white-50 font-monospace">Estimated Days Remaining: 142d</span>
+      </div>
+
+      <!-- O2 Tank Reserves -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-white small"><i class="fas fa-flask text-info me-2"></i> High-Pressure Cryogenic O₂ Tanks</span>
+          <span class="text-info font-monospace fw-bold">94.2% (1,480 kg)</span>
+        </div>
+        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-info" style="width: 94.2%;"></div>
+        </div>
+      </div>
+
+      <!-- N2 Balance Tanks -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-white small"><i class="fas fa-atom text-primary me-2"></i> Nitrogen Pressurization Gas Storage</span>
+          <span class="text-primary font-monospace fw-bold">97.8% (2,100 kg)</span>
+        </div>
+        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-primary" style="width: 97.8%;"></div>
+        </div>
+      </div>
+
+      <!-- Water Recovery System -->
+      <div class="mb-3">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-white small"><i class="fas fa-tint text-success me-2"></i> Closed-Loop Water Recovery System (WRS)</span>
+          <span class="text-success font-monospace fw-bold">{{ eclss.water_recovery_pct }}% Efficiency</span>
+        </div>
+        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-success" style="width: {{ eclss.water_recovery_pct }}%;"></div>
+        </div>
+      </div>
+
+      <!-- Cabin Humidity Control -->
+      <div>
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-white small"><i class="fas fa-cloud text-warning me-2"></i> Condensing Heat Exchanger Humidity</span>
+          <span class="text-warning font-monospace fw-bold">{{ eclss.humidity_pct }}% RH</span>
+        </div>
+        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-warning" style="width: {{ eclss.humidity_pct }}%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hardware BMP390 Sensor Correlation -->
+  <div class="col-lg-6">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-microchip me-1 text-cyan"></i> On-Board Sensor Hardware Telemetry</span>
+        <span class="badge bg-dark border border-info text-info font-monospace">BMP390 Precision I²C (0x77)</span>
+      </div>
+
+      <div class="p-3 rounded bg-dark border border-secondary mb-3 font-monospace" style="font-size:0.85rem;">
+        <div class="row g-2">
+          <div class="col-6">
+            <span class="text-white-50 d-block">SENSOR BUS</span>
+            <span class="text-white">I²C TWIM0 @ 400 kHz</span>
+          </div>
+          <div class="col-6">
+            <span class="text-white-50 d-block">NOISE LEVEL</span>
+            <span class="text-success">&plusmn; 0.02 hPa (Ultra-Low)</span>
+          </div>
+          <div class="col-6 mt-2">
+            <span class="text-white-50 d-block">OVERSAMPLING</span>
+            <span class="text-white">Pressure 4X / Temp 8X</span>
+          </div>
+          <div class="col-6 mt-2">
+            <span class="text-white-50 d-block">IIR FILTER</span>
+            <span class="text-white">Coefficient 3 (Damped)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded bg-dark border border-secondary text-white-50 small">
+        <h6 class="text-white mb-2"><i class="fas fa-shield-alt text-success me-1"></i> Autonomous Cabin Decompression Watchdog</h6>
+        <p class="mb-0">
+          The embedded firmware continuously calculates pressure gradients ($\Delta P / \Delta t$). If the cabin pressure drops faster than $0.5\text{ hPa/s}$, the firmware flags a <strong class="text-danger">DECOMPRESSION EVENT</strong> and alerts both the astronaut's wearable display and Ground Mission Control.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

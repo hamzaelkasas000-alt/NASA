@@ -1,0 +1,65 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# C extensions & build artifacts
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Python Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Local SQLite databases (re-initialized automatically on first launch)
+*.db
+*.sqlite
+*.sqlite3
+
+# Large media archives & video dumps (>50MB)
+*.zip
+*.tar
+*.tar.gz
+*.mp4
+*.mov
+*.avi
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Arduino & Hardware build artifacts
+*.hex
+*.bin
+*.elf
+.arduino15/
+
+# Environment variables & local secrets
+.env
+.env.*
+*.local

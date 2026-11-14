@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ASTRA | Autonomous Spaceflight Telemetry & Risk Assessment</title>
+  <!-- Chart.js 4.4.1 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- ASTRA Theme Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/astra_style.css') }}">
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="top-bar">
+    <div class="brand-wrap" onclick="location.reload()">
+      <div class="brand-icon">&#10022;</div>
+      <div class="brand-title">ASTRA <span>| SPARC</span></div>
+    </div>
+
+    <div class="top-actions">
+      <!-- Hardware Connection Badge -->
+      <span id="hw-status-badge" class="badge Normal" style="font-size:0.75rem;">
+        SIMULATED DATA
+      </span>
+
+      <!-- Sensor Contact Badge (Finger Contact) -->
+      <span id="sensor-contact-badge" class="badge Normal" style="font-size:0.75rem;" title="Biometric sensor contact status">
+        ● SENSOR: READY
+      </span>
+
+      <!-- Connect Hardware Dropdown -->
+      <button class="b" onclick="connectWebSerial()" title="Connect your nRF52840 via USB-C">
+        &#128268; Connect USB (Serial)
+      </button>
+
+      <button class="b" onclick="connectWebBluetooth()" title="Connect wirelessly via Bluetooth">
+        &#128246; Connect BLE
+      </button>
+
+      <!-- Flight Scenario Selector -->
+      <select onchange="setFlightScenario(this.value)" style="margin:0;font-size:0.8rem;padding:5px 8px;" title="Test flight scenarios">
+        <option value="NORMAL">Scenario: Normal Orbit</option>
+        <option value="EVA_EXERTION">Scenario: EVA Spacewalk</option>
+        <option value="HYPOXIA">Scenario: Hypoxia / Decompression</option>
+        <option value="WORKOUT">Scenario: Microgravity Workout</option>
+        <option value="FEVER">Scenario: Elevated Temperature</option>
+      </select>
+
+      <!-- Mission Elapsed Time -->
+      <span id="met-display" class="badge Normal" style="background:transparent;border-color:var(--bd);color:var(--prim);font-family:var(--font-mono);display:inline-block;">
+        MET: 042d 08:14:22
+      </span>
+
+      <!-- Theme Switcher -->
+      <button id="themeBtn" class="b">☀️ Light Mode</button>
+    </div>
+  </header>
+
+  <!-- Landing Page View -->
+  <div id="landing">
+    <span class="hero-tag">NASA Space Apps Challenge &bull; Team SPARC</span>
+    <h1 class="hero-title" style="justify-content:center;display:block;">
+      ASTRA<br><span>Autonomous Spaceflight Telemetry & Risk Assessment</span>
+    </h1>
+    <p class="hero-subtitle">
+      A comprehensive multi-tiered medical intelligence system engineered for deep-space astronaut health monitoring, clinical decision support, and Ground Mission Control oversight.
+    </p>
+
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:48px;">
+      <button id="gl" class="b b-prim" style="padding:10px 24px;font-size:1rem;">Enter Mission Platform</button>
+      <button id="ge" class="b" style="padding:10px 24px;font-size:1rem;">Explore Capabilities</button>
+    </div>
+
+    <!-- Feature Grid -->
+    <div id="feat" class="grid" style="text-align:left;margin-top:40px;">
+      <div class="glass">
+        <b style="color:var(--prim);">&#10084; Real-Time Biosensors</b>
+        <p class="mut" style="margin-top:6px;">Integrated nRF52840, MAX30102 PPG, and BMP390 altimeter streaming cardiopulmonary metrics and cabin acoustics.</p>
+      </div>
+      <div class="glass">
+        <b style="color:var(--cyan);">&#9745; 12 Health Indicators</b>
+        <p class="mut" style="margin-top:6px;">Clinical reference models across cardiovascular, fluid, glucose, radiation, DEXA bone density, and circadian indicators.</p>
+      </div>
+      <div class="glass">
+        <b style="color:var(--vio);">&#9879; Cognitive Readiness</b>
+        <p class="mut" style="margin-top:6px;">Standardized neuro-cognitive vigilance tasks: reaction time, tracking with distractors, and sequence memory.</p>
+      </div>
+      <div class="glass">
+        <b style="color:var(--c-norm);">&#127758; Earth Connection</b>
+        <p class="mut" style="margin-top:6px;">Sensory pacing relaxation environment with 4-4-6 breathing guidance and generative ambient acoustic therapy.</p>
+      </div>
+      <div class="glass">
+        <b style="color:var(--c-abv);">&#128225; Interplanetary Messaging</b>
+        <p class="mut" style="margin-top:6px;">Mission-accurate store-and-forward communications accounting for speed-of-light signal delays between Moon/Mars and Earth.</p>
+      </div>
+      <div class="glass">
+        <b style="color:var(--c-crit);">&#128657; Clinical Decision Engine</b>
+        <p class="mut" style="margin-top:6px;">51 medical scenario testbeds, prescription adherence logging, and autonomous flight surgeon advisory protocols.</p>
+      </div>
+    </div>
+
+    <p class="mut" style="margin-top:30px;font-size:0.75rem;">
+      ASTRA is an academic prototype engineered for the NASA Space Apps Challenge. Non-clinical simulation system.
+    </p>
+  </div>
+
+  <!-- Role Login Modal Card -->
+  <div id="login" class="glass">
+    <h2 style="font-size:1.3rem;margin-bottom:12px;color:var(--fg);">&#128640; Mission Access Terminal</h2>
+    <p class="mut" style="margin-bottom:16px;">Select access role and credential verification:</p>
+
+    <label class="mut" style="display:block;margin-bottom:4px;">Operational Role:</label>
+    <select id="role" style="width:100%;margin-bottom:12px;">
+      <option value="astro">Astronaut (Flight Crew)</option>
+      <option value="mc">Earth Mission Control (Flight Surgeon)</option>
+    </select>
+
+    <div id="who-wrap">
+      <label class="mut" style="display:block;margin-bottom:4px;">Crew Member Call-sign:</label>
+      <select id="who" style="width:100%;margin-bottom:12px;"></select>
+    </div>
+
+    <label class="mut" style="display:block;margin-bottom:4px;">Security Password:</label>
+    <input id="pw" type="password" value="demo" placeholder="Enter password" style="width:100%;margin-bottom:14px;">
+
+    <button id="go" class="b b-prim" style="width:100%;justify-content:center;padding:10px;">Sign In to ASTRA</button>
+    <p id="err" class="mut" style="color:var(--c-crit);margin-top:8px;text-align:center;"></p>
+  </div>
+
+  <!-- ASTRA Main Operational App Shell -->
+  <div id="app">
+    <!-- Left Role-based Sidebar Navigation -->
+    <nav id="nav"></nav>
+
+    <!-- Main Content Dynamic View Area -->
+    <div style="flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden;">
+      <!-- Audible & Visual Critical Alert Banner -->
+      <div id="critical-alert-banner" class="glass Critical" style="display:none; margin:16px 24px 0 24px; padding:12px 18px; border-radius:10px; align-items:center; justify-content:space-between; flex-shrink:0;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span style="font-size:1.6rem; line-height:1;">&#9888;</span>
+          <div>
+            <b style="color:var(--c-crit); font-size:0.95rem; text-transform:uppercase; letter-spacing:0.5px;">CRITICAL CLINICAL ANOMALY DETECTED</b>
+            <p id="critical-alert-msg" style="margin:2px 0 0 0; font-size:0.82rem; color:var(--fg);"></p>
+          </div>
+        </div>
+        <button class="b" onclick="dismissAlarm()" style="font-size:0.75rem; padding:6px 12px; cursor:pointer;" title="Silence siren">&#128263; Silence Siren</button>
+      </div>
+
+      <main id="main" style="flex:1;"></main>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="{{ url_for('static', filename='js/astra_app.js') }}"></script>
+</body>
+</html>

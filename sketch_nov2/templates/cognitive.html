@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Cognitive Assessment - AstroHealth NASA Operations{% endblock %}
+
+{% block content %}
+
+<!-- Header Banner -->
+<div class="sim-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <span class="badge bg-info text-dark text-uppercase fw-bold" style="letter-spacing:1px;"><i class="fas fa-brain me-1"></i> Neuro-Cognitive Flight Test</span>
+    <span class="text-white-50 small">NASA Psychomotor Vigilance Task (PVT) - Validates central nervous system latency & microgravity sleep debt</span>
+  </div>
+  <span class="badge bg-dark border border-secondary text-white font-monospace">SUBJECT: {{ astro.name }} ({{ astro.callsign }})</span>
+</div>
+
+<div class="row g-4">
+  <!-- Interactive Test Box -->
+  <div class="col-lg-7">
+    <div class="nasa-card p-4 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-stopwatch me-1"></i> Reaction Time Visual Stimulus</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="resetPVT()"><i class="fas fa-redo me-1"></i> Reset</button>
+      </div>
+
+      <!-- PVT Target Box -->
+      <div id="pvt-interactive-box" class="pvt-box pvt-waiting text-center">
+        <span id="pvt-prompt">CLICK HERE TO BEGIN COGNITIVE TEST</span>
+      </div>
+
+      <!-- Instructions -->
+      <div class="mt-3 p-3 rounded bg-dark border border-secondary" style="font-size:0.85rem;">
+        <h6 class="text-info mb-1"><i class="fas fa-info-circle me-1"></i> Flight Protocol Instructions:</h6>
+        <ol class="mb-0 text-white-50 ps-3">
+          <li>Click the box above to arm the reaction sequence.</li>
+          <li>Focus on the box. As soon as it flashes <strong class="text-success">BRIGHT GREEN</strong>, click as fast as possible.</li>
+          <li>Do not click while waiting (false start penalty applies).</li>
+          <li>Complete 3 consecutive trials to compute your mean cognitive latency.</li>
+        </ol>
+      </div>
+
+      <!-- Test Results Banner -->
+      <div id="pvt-result-box" class="mt-3 p-3 rounded bg-dark border border-success d-none">
+        <div class="row align-items-center text-center">
+          <div class="col-md-4 border-end border-secondary">
+            <span class="text-white-50 small d-block">AVERAGE REACTION</span>
+            <div id="pvt-avg-time" class="h3 text-success fw-bold font-monospace mb-0">-- ms</div>
+          </div>
+          <div class="col-md-8 text-start ps-3">
+            <span class="text-white-50 small d-block">FLIGHT READINESS EVALUATION:</span>
+            <div id="pvt-readiness-label" class="fw-bold">--</div>
+            <small class="text-white-50">Data logged directly to mission medical history file.</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historical Test Results -->
+  <div class="col-lg-5">
+    <div class="nasa-card p-4 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-history me-1"></i> Recent Assessment Log</span>
+        <span class="badge bg-secondary font-monospace">Last 10 Flights</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="font-size:0.85rem;">
+          <thead>
+            <tr class="text-white-50 border-secondary">
+              <th>TIMESTAMP</th>
+              <th>LATENCY</th>
+              <th>READINESS RATING</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for h in history %}
+            <tr class="border-secondary">
+              <td class="font-monospace text-white-50">{{ h.timestamp.split(' ')[0] }} {{ h.timestamp.split(' ')[1][:5] }}</td>
+              <td class="font-monospace text-info fw-bold">{{ h.reaction_time_ms|round|int }} ms</td>
+              <td>
+                {% if 'EXCELLENT' in h.readiness_rating %}
+                <span class="badge bg-info text-dark">EXCELLENT</span>
+                {% elif 'NOMINAL' in h.readiness_rating %}
+                <span class="badge bg-success">NOMINAL</span>
+                {% elif 'MILD' in h.readiness_rating %}
+                <span class="badge bg-warning text-dark">FATIGUED</span>
+                {% else %}
+                <span class="badge bg-danger">REST REQ</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="3" class="text-center text-white-50 py-3">No previous cognitive test runs logged yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 p-3 rounded bg-dark border border-secondary" style="font-size:0.8rem;">
+        <span class="text-white fw-bold d-block mb-1"><i class="fas fa-microscope text-warning me-1"></i> Aerospace Medicine Benchmarks:</span>
+        <ul class="mb-0 text-white-50 ps-3">
+          <li><strong>&lt; 250 ms:</strong> Peak alertness (EVAs, docking operations).</li>
+          <li><strong>250 - 350 ms:</strong> Standard nominal range.</li>
+          <li><strong>&gt; 450 ms:</strong> High fatigue / microgravity neuro-adaptation delay.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/cognitive_test.js') }}"></script>
+{% endblock %}

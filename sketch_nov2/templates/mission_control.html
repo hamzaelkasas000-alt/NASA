@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Earth Mission Control - AstroHealth NASA Operations{% endblock %}
+
+{% block content %}
+
+<!-- Mission Control Header Banner -->
+<div class="sim-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <span class="badge bg-danger text-uppercase" style="letter-spacing:1px;"><i class="fas fa-satellite me-1"></i> Earth Ground Station</span>
+    <span class="text-white-50 small">Johnson Space Center - Flight Surgeon Monitoring Console | DSN Station 43 Link Active</span>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-dark border border-success text-success font-monospace">DSN UPLINK: NOMINAL (99.8%)</span>
+    <span class="badge bg-dark border border-info text-info font-monospace">COMM DELAY: 1.28 sec</span>
+  </div>
+</div>
+
+<!-- Fleet Crew Overview Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h6 class="text-white mb-0 text-uppercase tracking-wider" style="letter-spacing:1px;">
+        <i class="fas fa-users me-2 text-info"></i> Artemis Expedition Crew Fleet Status
+      </h6>
+      <span class="text-white-50 small font-monospace">Active Telemetry Channels: 3/3</span>
+    </div>
+  </div>
+
+  {% for c in crew_data %}
+  <div class="col-lg-4 col-md-6">
+    <div class="nasa-card p-3 h-100" style="border-top: 3px solid {{ c.astronaut.avatar_color }};">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-dark border border-secondary text-info font-monospace">{{ c.astronaut.callsign }}</span>
+          <span class="fw-bold text-white">{{ c.astronaut.name }}</span>
+        </div>
+        <span class="status-pill {% if c.telemetry and c.telemetry.risk_level == 'HIGH' %}status-pill-red{% elif c.telemetry and c.telemetry.risk_level == 'MEDIUM' %}status-pill-amber{% else %}status-pill-green{% endif %}">
+          {{ c.telemetry.risk_level if c.telemetry else 'OPTIMAL' }}
+        </span>
+      </div>
+
+      <div class="text-white-50 small mb-2">{{ c.astronaut.role }}</div>
+
+      <!-- Quick Vitals Snapshot -->
+      <div class="row g-2 text-center my-2 font-monospace" style="font-size:0.85rem;">
+        <div class="col-3 p-1 rounded bg-dark border border-secondary">
+          <span class="text-white-50 d-block" style="font-size:0.7rem;">HEART</span>
+          <span class="text-white fw-bold">{{ c.telemetry.heart_rate if c.telemetry else 68.0 }}</span>
+          <span class="text-white-50" style="font-size:0.65rem;">BPM</span>
+        </div>
+        <div class="col-3 p-1 rounded bg-dark border border-secondary">
+          <span class="text-white-50 d-block" style="font-size:0.7rem;">SPO2</span>
+          <span class="text-info fw-bold">{{ c.telemetry.spo2 if c.telemetry else 98.0 }}%</span>
+          <span class="text-white-50" style="font-size:0.65rem;">O₂</span>
+        </div>
+        <div class="col-3 p-1 rounded bg-dark border border-secondary">
+          <span class="text-white-50 d-block" style="font-size:0.7rem;">TEMP</span>
+          <span class="text-warning fw-bold">{{ c.telemetry.temperature if c.telemetry else 36.8 }}</span>
+          <span class="text-white-50" style="font-size:0.65rem;">°C</span>
+        </div>
+        <div class="col-3 p-1 rounded bg-dark border border-secondary">
+          <span class="text-white-50 d-block" style="font-size:0.7rem;">HEALTH</span>
+          <span class="text-success fw-bold">{{ c.telemetry.health_score|round|int if c.telemetry else 96 }}</span>
+          <span class="text-white-50" style="font-size:0.65rem;">PTS</span>
+        </div>
+      </div>
+
+      <div class="p-2 rounded bg-dark border border-secondary mt-2">
+        <small class="text-white-50 d-block" style="font-size:0.72rem;">RECOMMENDATION:</small>
+        <div class="text-white small text-truncate" title="{{ c.telemetry.recommendation if c.telemetry else 'Nominal mission profile' }}">
+          <i class="fas fa-stethoscope text-info me-1"></i>
+          {{ c.telemetry.recommendation if c.telemetry else 'Continue mission activities' }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Mission Control Dual Columns: Alerts & ECLSS -->
+<div class="row g-3">
+  <!-- Medical Alerts & Anomaly Feed -->
+  <div class="col-lg-7">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-bell text-warning me-1"></i> Mission Medical Event Log</span>
+        <span class="badge bg-dark border border-warning text-warning font-monospace">Real-Time Triage</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle mb-0" style="font-size:0.85rem;">
+          <thead>
+            <tr class="text-white-50 border-secondary">
+              <th>TIME (UTC)</th>
+              <th>CREW</th>
+              <th>SEVERITY</th>
+              <th>ANOMALY DETAILS</th>
+              <th class="text-end">ACTION</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in alerts %}
+            <tr class="border-secondary">
+              <td class="font-monospace text-white-50">{{ a.timestamp.split(' ')[1] if ' ' in a.timestamp else a.timestamp }}</td>
+              <td><span class="badge bg-secondary font-monospace">{{ a.callsign }}</span></td>
+              <td>
+                {% if a.severity == 'CRITICAL' %}
+                <span class="badge bg-danger text-white">CRITICAL</span>
+                {% elif a.severity == 'WARNING' or a.severity == 'CAUTION' %}
+                <span class="badge bg-warning text-dark">CAUTION</span>
+                {% else %}
+                <span class="badge bg-info text-dark">INFO</span>
+                {% endif %}
+              </td>
+              <td class="text-white">{{ a.message }}</td>
+              <td class="text-end">
+                {% if not a.acknowledged %}
+                <button class="btn btn-sm btn-outline-success" onclick="ackAlert({{ a.id }}, this)">
+                  <i class="fas fa-check"></i>
+                </button>
+                {% else %}
+                <span class="text-success small font-monospace"><i class="fas fa-check-double"></i> ACK</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-white-50 py-3">No active anomaly alerts. All parameters nominal.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spacecraft Life Support System (ECLSS) Snapshot -->
+  <div class="col-lg-5">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <span class="metric-label"><i class="fas fa-wind text-info me-1"></i> Spacecraft Life Support (ECLSS)</span>
+        <a href="/environmental" class="text-info small text-decoration-none">Full Telemetry <i class="fas fa-arrow-right"></i></a>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <div class="p-2 rounded bg-dark border border-secondary text-center">
+            <span class="metric-label d-block">CABIN PRESSURE</span>
+            <div class="h4 text-success mb-0 font-monospace">{{ eclss.cabin_pressure_kpa }} kPa</div>
+            <small class="text-white-50">14.7 psi (1.00 atm)</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-2 rounded bg-dark border border-secondary text-center">
+            <span class="metric-label d-block">CABIN TEMP</span>
+            <div class="h4 text-warning mb-0 font-monospace">{{ eclss.cabin_temp_c }} °C</div>
+            <small class="text-white-50">71.2 °F Nominal</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-2 rounded bg-dark border border-secondary text-center">
+            <span class="metric-label d-block">O₂ CONCENTRATION</span>
+            <div class="h4 text-info mb-0 font-monospace">{{ eclss.oxygen_pct }} %</div>
+            <small class="text-white-50">Atmospheric Mix</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-2 rounded bg-dark border border-secondary text-center">
+            <span class="metric-label d-block">CO₂ SCRUBBER</span>
+            <div class="h4 text-white mb-0 font-monospace">{{ eclss.co2_pct }} %</div>
+            <small class="text-success"><i class="fas fa-check"></i> Scrubber Active</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded bg-dark border border-secondary">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="text-white small"><i class="fas fa-tint text-info me-1"></i> Potable Water Recovery Loop</span>
+          <span class="text-info fw-bold font-monospace">{{ eclss.water_recovery_pct }}%</span>
+        </div>
+        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-info" style="width: {{ eclss.water_recovery_pct }}%;"></div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mt-3 mb-1">
+          <span class="text-white small"><i class="fas fa-radiation text-warning me-1"></i> Cabin Cosmic Radiation Dosimeter</span>
+          <span class="text-warning fw-bold font-monospace">{{ eclss.radiation_usv_hr }} µSv/h</span>
+        </div>
+        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1);">
+          <div class="progress-bar bg-warning" style="width: 28%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function ackAlert(alertId, btn) {
+  try {
+    const res = await fetch('/api/alerts/acknowledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alert_id: alertId })
+    });
+    if (res.ok) {
+      btn.outerHTML = '<span class="text-success small font-monospace"><i class="fas fa-check-double"></i> ACK</span>';
+    }
+  } catch(e) {
+    console.error("Alert ack failed:", e);
+  }
+}
+</script>
+{% endblock %}

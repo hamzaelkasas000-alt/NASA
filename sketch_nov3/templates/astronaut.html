@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Astronaut Vitals - AstroHealth NASA Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Simulation Scenario Bar -->
+<div class="sim-bar d-flex flex-wrap align-items-center justify-content-between gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-primary text-uppercase" style="letter-spacing:1px;"><i class="fas fa-sliders-h me-1"></i> Flight Simulator</span>
+    <span class="text-white-50 small d-none d-md-inline">Test live sensor algorithms against spaceflight anomalies:</span>
+  </div>
+  <div class="btn-group btn-group-sm" role="group">
+    <button type="button" class="btn btn-primary btn-scenario" id="btn-scen-normal" onclick="setScenario('NORMAL')">
+      <i class="fas fa-check-circle me-1"></i> Normal Orbit
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-scenario" id="btn-scen-eva_exertion" onclick="setScenario('EVA_EXERTION')">
+      <i class="fas fa-running me-1"></i> EVA Spacewalk
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-scenario" id="btn-scen-hypoxia" onclick="setScenario('HYPOXIA')">
+      <i class="fas fa-lungs-virus me-1"></i> Hypoxia Anomaly
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-scenario" id="btn-scen-workout" onclick="setScenario('WORKOUT')">
+      <i class="fas fa-dumbbell me-1"></i> Exercise Routine
+    </button>
+    <button type="button" class="btn btn-outline-secondary btn-scenario" id="btn-scen-fever" onclick="setScenario('FEVER')">
+      <i class="fas fa-thermometer-full me-1"></i> Elevated Temp
+    </button>
+  </div>
+</div>
+
+<!-- Astronaut Profile & Overall Health Header -->
+<div class="row g-3 mb-3">
+  <!-- Profile Summary -->
+  <div class="col-lg-4 col-md-12">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="metric-label"><i class="fas fa-id-badge me-1"></i> Astronaut Identity</span>
+        <span class="badge bg-dark border border-info text-info font-monospace">{{ astro.callsign }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div style="width:58px; height:58px; border-radius:50%; background: linear-gradient(135deg, #0b3d91, #00f0ff); display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:#fff; border: 2px solid rgba(0,240,255,0.6);">
+          <i class="fas fa-user-astronaut"></i>
+        </div>
+        <div>
+          <h5 class="mb-0 text-white fw-bold">{{ astro.name }}</h5>
+          <div class="text-white-50 small">{{ astro.role }}</div>
+          <div class="text-info small font-monospace"><i class="fas fa-rocket me-1"></i>{{ astro.mission }}</div>
+        </div>
+      </div>
+      <hr class="border-secondary my-2">
+      <div class="row text-center font-monospace" style="font-size:0.8rem;">
+        <div class="col-4 border-end border-secondary">
+          <span class="text-white-50 d-block">BLOOD</span>
+          <span class="text-white fw-bold">{{ astro.blood_type }}</span>
+        </div>
+        <div class="col-4 border-end border-secondary">
+          <span class="text-white-50 d-block">REST HR</span>
+          <span class="text-white fw-bold">{{ astro.baseline_hr }} BPM</span>
+        </div>
+        <div class="col-4">
+          <span class="text-white-50 d-block">DEVICE</span>
+          <span class="text-success fw-bold">BLE CONNECTED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-time Composite Health Status -->
+  <div class="col-lg-8 col-md-12">
+    <div class="nasa-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="metric-label"><i class="fas fa-heartbeat me-1"></i> Autonomous Health & Risk Assessment</span>
+        <span id="badge-risk" class="status-pill status-pill-green">{{ telemetry.risk_level if telemetry else 'LOW' }}</span>
+      </div>
+
+      <div class="row align-items-center">
+        <div class="col-md-4 text-center border-end border-secondary">
+          <span class="metric-label d-block">HEALTH SCORE</span>
+          <div class="metric-value text-success" id="val-health">
+            {{ telemetry.health_score|round|int if telemetry else 96 }}
+          </div>
+          <div class="progress mt-2" style="height: 6px; background: rgba(255,255,255,0.1);">
+            <div id="health-progress-bar" class="progress-bar bg-success" style="width: 96%;"></div>
+          </div>
+          <small class="text-white-50" style="font-size:0.75rem;">Scale: 0 - 100 Index</small>
+        </div>
+
+        <div class="col-md-3 text-center border-end border-secondary">
+          <span class="metric-label d-block">FATIGUE INDEX</span>
+          <div class="metric-value text-info" id="val-fatigue">
+            {{ telemetry.fatigue_index|round|int if telemetry else 10 }}
+          </div>
+          <small class="text-white-50" style="font-size:0.75rem;">Physical Exertion Meter</small>
+        </div>
+
+        <div class="col-md-5 ps-3">
+          <span class="metric-label d-block mb-1"><i class="fas fa-clipboard-check me-1"></i> Flight Surgeon Advisory</span>
+          <div class="p-2 rounded bg-dark border border-secondary">
+            <span class="text-white fw-bold font-monospace" id="val-rec" style="font-size:0.9rem;">
+              {{ telemetry.recommendation if telemetry else 'Continue mission activities' }}
+            </span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between mt-2 text-white-50 small">
+            <span>Telecommand: Nominal</span>
+            <span class="font-monospace text-info">GATT: 0x2A37</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Primary Sensor Telemetry Cards (MAX30102 + BMP390) -->
+<div class="row g-3 mb-3">
+  <!-- 1. Heart Rate -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">HEART RATE</span>
+        <i class="fas fa-heart heartbeat-icon"></i>
+      </div>
+      <div class="metric-value" id="val-hr">
+        {{ telemetry.heart_rate if telemetry else 72.0 }}
+      </div>
+      <span class="metric-unit">BPM</span>
+      <div class="text-white-50 small font-monospace mt-1">MAX30102 PPG</div>
+    </div>
+  </div>
+
+  <!-- 2. SpO2 Blood Oxygen -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">BLOOD O₂</span>
+        <i class="fas fa-lungs text-info"></i>
+      </div>
+      <div class="metric-value text-info" id="val-spo2">
+        {{ telemetry.spo2 if telemetry else 98.0 }}
+      </div>
+      <span class="metric-unit">% SpO₂</span>
+      <div class="text-white-50 small font-monospace mt-1">Infrared/Red Ratio</div>
+    </div>
+  </div>
+
+  <!-- 3. Core Temperature -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">BODY TEMP</span>
+        <i class="fas fa-temperature-high text-warning"></i>
+      </div>
+      <div class="metric-value text-warning" id="val-temp">
+        {{ telemetry.temperature if telemetry else 36.8 }}
+      </div>
+      <span class="metric-unit">°C</span>
+      <div class="text-white-50 small font-monospace mt-1">Calibrated Sensor</div>
+    </div>
+  </div>
+
+  <!-- 4. Barometric Pressure -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">CABIN PRESS</span>
+        <i class="fas fa-tachometer-alt text-success"></i>
+      </div>
+      <div class="metric-value text-success" id="val-press">
+        {{ telemetry.pressure if telemetry else 1013.2 }}
+      </div>
+      <span class="metric-unit">hPa</span>
+      <div class="text-white-50 small font-monospace mt-1">BMP390 Barometer</div>
+    </div>
+  </div>
+
+  <!-- 5. Altitude -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">ALTITUDE</span>
+        <i class="fas fa-mountain text-primary"></i>
+      </div>
+      <div class="metric-value text-primary" id="val-alt">
+        {{ telemetry.altitude if telemetry else 20.0 }}
+      </div>
+      <span class="metric-unit">Meters</span>
+      <div class="text-white-50 small font-monospace mt-1">Hypsometric Calc</div>
+    </div>
+  </div>
+
+  <!-- 6. Battery & Power -->
+  <div class="col-xl-2 col-md-4 col-sm-6">
+    <div class="nasa-card p-3 text-center">
+      <div class="d-flex align-items-center justify-content-between mb-1">
+        <span class="metric-label">WEARABLE POWER</span>
+        <i class="fas fa-battery-three-quarters text-success"></i>
+      </div>
+      <div class="metric-value text-white">
+        92<span class="metric-unit">%</span>
+      </div>
+      <span class="metric-unit">3.98 V</span>
+      <div class="text-white-50 small font-monospace mt-1">TP4056 Li-Ion</div>
+    </div>
+  </div>
+</div>
+
+<!-- Real-Time Dynamic Charts -->
+<div class="row g-3 mb-3">
+  <!-- Chart 1: Pulse & SpO2 -->
+  <div class="col-lg-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="metric-label"><i class="fas fa-wave-square me-1"></i> Cardiopulmonary Telemetry Waveform</span>
+        <span class="badge bg-dark border border-secondary text-white-50 font-monospace">Real-Time Stream</span>
+      </div>
+      <div style="height: 250px;">
+        <canvas id="chart-hr"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Pressure & Temperature -->
+  <div class="col-lg-6">
+    <div class="nasa-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="metric-label"><i class="fas fa-chart-line me-1"></i> Pressure & Thermal Environmental Dynamics</span>
+        <span class="badge bg-dark border border-secondary text-white-50 font-monospace">1 Sec Poll</span>
+      </div>
+      <div style="height: 250px;">
+        <canvas id="chart-env"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary Spaceflight Medical Trackers -->
+<div class="row g-3">
+  <div class="col-md-3 col-sm-6">
+    <div class="nasa-card p-3">
+      <span class="metric-label d-block mb-1"><i class="fas fa-tint me-1 text-info"></i> Hydration Balance</span>
+      <div class="d-flex align-items-baseline justify-content-between">
+        <span class="h4 text-white mb-0 font-monospace">94%</span>
+        <span class="text-success small"><i class="fas fa-check"></i> Optimal</span>
+      </div>
+      <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.1);">
+        <div class="progress-bar bg-info" style="width: 94%;"></div>
+      </div>
+      <small class="text-white-50 mt-1 d-block font-monospace">Intake: 2.35 L / 2.50 L</small>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-sm-6">
+    <div class="nasa-card p-3">
+      <span class="metric-label d-block mb-1"><i class="fas fa-balance-scale me-1 text-warning"></i> Vestibular Balance</span>
+      <div class="d-flex align-items-baseline justify-content-between">
+        <span class="h4 text-white mb-0 font-monospace">98.2</span>
+        <span class="text-info small">Score / 100</span>
+      </div>
+      <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.1);">
+        <div class="progress-bar bg-warning" style="width: 98%;"></div>
+      </div>
+      <small class="text-white-50 mt-1 d-block font-monospace">Microgravity Adaptation: Nominal</small>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-sm-6">
+    <div class="nasa-card p-3">
+      <span class="metric-label d-block mb-1"><i class="fas fa-bone me-1 text-primary"></i> Bone Density DEXA</span>
+      <div class="d-flex align-items-baseline justify-content-between">
+        <span class="h4 text-white mb-0 font-monospace">-0.18</span>
+        <span class="text-success small">T-Score</span>
+      </div>
+      <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.1);">
+        <div class="progress-bar bg-primary" style="width: 90%;"></div>
+      </div>
+      <small class="text-white-50 mt-1 d-block font-monospace">ARED Exercise Compliance: 100%</small>
+    </div>
+  </div>
+
+  <div class="col-md-3 col-sm-6">
+    <div class="nasa-card p-3">
+      <span class="metric-label d-block mb-1"><i class="fas fa-heartbeat me-1 text-danger"></i> Blood Pressure (Est.)</span>
+      <div class="d-flex align-items-baseline justify-content-between">
+        <span class="h4 text-white mb-0 font-monospace">118 / 76</span>
+        <span class="text-white-50 small">mmHg</span>
+      </div>
+      <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.1);">
+        <div class="progress-bar bg-danger" style="width: 78%;"></div>
+      </div>
+      <small class="text-white-50 mt-1 d-block font-monospace">Arterial Pulse Transit Time</small>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
